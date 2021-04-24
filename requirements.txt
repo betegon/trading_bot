@@ -1,5 +1,5 @@
 yfinance
-mpl_finance
+mplfinance
 numpy
 pandas
 matplotlib
