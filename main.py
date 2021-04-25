@@ -22,7 +22,9 @@ def parse_ticker_history(ticker_history: pd.DataFrame) -> pd.DataFrame:
 def create_levels(df: pd.DataFrame) -> Tuple[dict, list]:
     levels = {"support": [], "resistance": []}
     levels_all = []
-    for i in range(2, df.shape[0]-2):
+    print(df.shape)
+    for i in range(df.shape[0]):
+        print(i)
         if isSupport(df, i):
             levels["support"].append((i, df['Low'][i]))
             levels_all.append((i, df['Low'][i]))
@@ -64,24 +66,22 @@ def isResistance(df,i):
 
     return resistance
 
-def plot_all(df, levels):
-    fig, ax = plt.subplots()
+def plot_all(df: pd.DataFrame, levels_to_chart: list):
+    fig, ax = plt.subplots(1, len(levels_to_chart))
+    for idx, levels in enumerate(levels_to_chart):
+        candlestick_ohlc(ax[idx], df.values, width=0.6, colorup='green', colordown='red', alpha=0.8)
+        date_format = mpl_dates.DateFormatter('%d %b %Y')
+        ax[idx].xaxis.set_major_formatter(date_format)
+        fig.autofmt_xdate()
+        fig.tight_layout()
 
-    candlestick_ohlc(ax,df.values,width=0.6, \
-                    colorup='green', colordown='red', alpha=0.8)
-
-    date_format = mpl_dates.DateFormatter('%d %b %Y')
-    ax.xaxis.set_major_formatter(date_format)
-    fig.autofmt_xdate()
-
-    fig.tight_layout()
-
-    for level in levels["support"]:
-        plt.hlines(level[1],xmin=df['Date'][level[0]],\
-                xmax=max(df['Date']),colors='green')
-    for level in levels["resistance"]:
-        plt.hlines(level[1],xmin=df['Date'][level[0]],\
-                xmax=max(df['Date']),colors='red')
+        for level in levels["support"]:
+            ax[idx].hlines(level[1], xmin=df['Date'][level[0]],
+                    xmax=max(df['Date']), colors='green')
+        for level in levels["resistance"]:
+            ax[idx].hlines(level[1], xmin=df['Date'][level[0]],
+                    xmax=max(df['Date']), colors='red')
+        ax[idx] = fig.show()
     fig.show()
     plt.show()
 
@@ -125,12 +125,8 @@ def main():
     ticker_history = get_ticker_history(ticker, time_interval, date_start, date_end)
     ticker_history = parse_ticker_history(ticker_history)
     levels, levels_all = create_levels(ticker_history)
-    levels, levels_all = filter_levels(ticker_history)
-    plot_all(ticker_history, levels)
-    
-
-    print(levels)
-    plot_all(ticker_history, levels)
+    levels_filtered, levels_all = filter_levels(ticker_history)
+    plot_all(ticker_history, [levels, levels_filtered])
 
     # TODO Round up levels
     # TODO save information of winning and lossing trades (levels, etc), to get statistics from that.
