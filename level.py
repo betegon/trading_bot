@@ -15,5 +15,9 @@ class Level():
         self.touched = touched or False
         self.broken = broken or False
         self.traded = traded or False
+
+        # TODO Round up level (maybe it should be done outside here, or not).maybe it could be done in a Chart class. A chart contains levels.
+        # TODO create timeframe attribute --> HTF, MTF or LTF (Enum, as LevelType)
         # TODO create a an attribute to know how many times the level have been touched.
-        # TODO set importancy of a level.
+        # TODO set importancy of a level. Think how to know that importance (touched times, space after re-touch after broking, etc.)
+        # TODO Convert from resistance to support and viceversa when broken, etc.
