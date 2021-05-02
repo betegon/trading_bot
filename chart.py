@@ -53,12 +53,14 @@ class Chart():
         return levels
 
     def __is_support(self, i):
-        support = self.ticker_history['Low'][i] < self.ticker_history['Low'][i-1]  and self.ticker_history['Low'][i] < self.ticker_history['Low'][i+1] \
+        # TODO check if we should change all "<" to "<=". It is suppose to include more levels. 
+        support = self.ticker_history['Low'][i] < self.ticker_history['Low'][i-1] and self.ticker_history['Low'][i] < self.ticker_history['Low'][i+1] \
         and self.ticker_history['Low'][i+1] < self.ticker_history['Low'][i+2] and self.ticker_history['Low'][i-1] < self.ticker_history['Low'][i-2]
 
         return support
 
     def __is_resistance(self, i):
+        # TODO check if we should change all ">" to ">=". It is suppose to include more levels.
         resistance = self.ticker_history['High'][i] > self.ticker_history['High'][i-1]  and self.ticker_history['High'][i] > self.ticker_history['High'][i+1] \
         and self.ticker_history['High'][i+1] > self.ticker_history['High'][i+2] and self.ticker_history['High'][i-1] > self.ticker_history['High'][i-2] 
 
