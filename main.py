@@ -6,7 +6,7 @@ from mpl_finance import candlestick_ohlc
 import matplotlib.dates as mpl_dates
 import matplotlib.pyplot as plt
 from typing import Tuple
-
+from level import Level, LevelType
 
 
 def get_ticker_history(ticker: str, time_interval: str, date_start: str,
@@ -22,23 +22,33 @@ def parse_ticker_history(ticker_history: pd.DataFrame) -> pd.DataFrame:
 def create_levels(df: pd.DataFrame) -> Tuple[dict, list]:
     levels = {"support": [], "resistance": []}
     levels_all = []
-    print(df.shape)
-    for i in range(df.shape[0]):
-        print(i)
+    levels_obj = []
+
+    for i in range(2, df.shape[0] -2):
         if isSupport(df, i):
+            levels_obj.append(Level(LevelType.SUPPORT, (i, df['Low'][i])))
             levels["support"].append((i, df['Low'][i]))
             levels_all.append((i, df['Low'][i]))
         elif isResistance(df, i):
+            levels_obj.append(Level(LevelType.RESISTANCE, (i, df['High'][i])))
             levels["resistance"].append((i, df['High'][i]))
             levels_all.append((i, df['High'][i]))
     return levels, levels_all
 
+def create_levels_obj(df: pd.DataFrame) -> list:
+    levels = []
+    for i in range(2, df.shape[0] -2):
+        if isSupport(df, i):
+            levels.append(Level(LevelType.SUPPORT, (i, df['Low'][i])))
+        elif isResistance(df, i):
+            levels.append(Level(LevelType.RESISTANCE, (i, df['High'][i])))
+    return levels
+
 def filter_levels(df: pd.DataFrame) -> Tuple[dict, list]:
     levels = {"support": [], "resistance": []}
     levels_all = []
-
     price_mean =  np.mean(df['High'] - df['Low'])
-    for i in range(2,df.shape[0]-2):
+    for i in range(2, df.shape[0]-2):
         if isSupport(df,i):
             l = df['Low'][i]
 
@@ -53,6 +63,21 @@ def filter_levels(df: pd.DataFrame) -> Tuple[dict, list]:
                 levels["resistance"].append((i,l))
                 levels_all.append((i,l))
     return levels, levels_all
+
+
+def filter_levels_obj(df: pd.DataFrame) -> list:
+    levels = []
+    price_mean = np.mean(df['High'] - df['Low'])
+    for i in range(2, df.shape[0]-2):
+        if isSupport(df, i):
+            l = df['Low'][i]
+            if isFarFromLevelObj(l, price_mean, levels):
+                levels.append(Level(LevelType.SUPPORT, (i, l)))
+        elif isResistance(df, i):
+            l = df['High'][i]
+            if isFarFromLevelObj(l, price_mean, levels):
+                levels.append(Level(LevelType.RESISTANCE, (i, l)))
+    return levels
 
 def isSupport(df,i):
     support = df['Low'][i] < df['Low'][i-1]  and df['Low'][i] < df['Low'][i+1] \
@@ -110,8 +135,18 @@ def plot_all_new(df, levels):
     plt.show()
 
 def isFarFromLevel(l, s, levels):
-    return np.sum([abs(l-x) < s  for x in levels]) == 0
+    return np.sum([abs(l-x) < s for x in levels]) == 0
 
+
+def isFarFromLevelObj(l, s, levels):
+    if levels:
+        print("level: ", levels[0].value)
+        print("    l: ", l)
+        print("l-lev: ", abs(l - levels[0].value))
+        print("s:     ", s)
+        print("bool:   ", [abs(l-x.value) < s  for x in levels])
+        # TODO we just want to use the value of the level, not the position on the chart.
+    return np.sum([abs(l-x.value) < s  for x in levels]) == 0
 
 def main():
     plt.rcParams['figure.figsize'] = [12, 7]
@@ -120,12 +155,16 @@ def main():
     #ticker = 'BTC-USD'
     ticker = 'MSFT'
     time_interval = "1d"
-    date_start = "2020-01-15"
+    date_start = "2020-06-15"
     date_end = "2021-04-15"
     ticker_history = get_ticker_history(ticker, time_interval, date_start, date_end)
     ticker_history = parse_ticker_history(ticker_history)
     levels, levels_all = create_levels(ticker_history)
+    levels_obj = create_levels_obj(ticker_history)
     levels_filtered, levels_all = filter_levels(ticker_history)
+    levels_filtered_obj = filter_levels_obj(ticker_history)
+    print(levels_obj)
+    print(levels_filtered_obj)
     plot_all(ticker_history, [levels, levels_filtered])
 
     # TODO Round up levels

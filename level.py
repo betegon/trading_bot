@@ -5,13 +5,14 @@ class LevelType(Enum):
     RESISTANCE = 'RESISTANCE'
 
 class Level():
-    def __init__(self, type: LevelType, touched: bool = None, 
+    def __init__(self, type: LevelType, value: tuple, touched: bool = None, 
                  broken: bool = None, traded: bool = None):
         if not isinstance(type, LevelType):
             raise ValueError(
                 'You tried to set Level.type = {}, '
                 'but It should be one of these: {}'.format(type, [e.value for e in LevelType]))
         self.type = type
+        self.value = value
         self.touched = touched or False
         self.broken = broken or False
         self.traded = traded or False
@@ -21,3 +22,4 @@ class Level():
         # TODO create a an attribute to know how many times the level have been touched.
         # TODO set importancy of a level. Think how to know that importance (touched times, space after re-touch after broking, etc.)
         # TODO Convert from resistance to support and viceversa when broken, etc.
+
